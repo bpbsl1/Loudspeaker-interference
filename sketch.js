@@ -5,12 +5,14 @@ let lambdaSlider;
 let spacingSlider;
 
 let lambda = 100;        // pixels
-let pxToMeter = 0.01;    // 1 px = 0.01 m = 1 cm
+let pxToMeter = 0.01;    // 1 px = 0.01 m
 
 let dragging = false;
 
 let osc;
 let soundStarted = false;
+
+let time = 0;
 
 function setup() {
   let canvas = createCanvas(1000, 620);
@@ -47,8 +49,8 @@ function draw() {
 
   drawTitle();
 
-  drawWavefronts(speaker1, color(255, 70, 70));
-  drawWavefronts(speaker2, color(255, 145, 0));
+  drawTravelingSineWave(speaker1, color(255, 70, 70), 0);
+  drawTravelingSineWave(speaker2, color(255, 145, 0), PI / 8);
 
   drawSpeaker(speaker1, "1");
   drawSpeaker(speaker2, "2");
@@ -66,15 +68,24 @@ function draw() {
 
   stroke(100);
   strokeWeight(1);
-  line(speaker1.x, speaker1.y, mic.x, mic.y);
-  line(speaker2.x, speaker2.y, mic.x, mic.y);
+  line(speaker1.x + 65, speaker1.y, mic.x, mic.y);
+  line(speaker2.x + 65, speaker2.y, mic.x, mic.y);
+
+  noStroke();
+  fill(0);
+  textSize(16);
+  text("d₁", (speaker1.x + mic.x) / 2 + 20, (speaker1.y + mic.y) / 2 - 15);
+  text("d₂", (speaker2.x + mic.x) / 2 + 20, (speaker2.y + mic.y) / 2 + 20);
 
   drawMic();
 
+  drawSpeakerSeparationArrow(spacing_m);
   drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio);
   drawControls(lambda_m, spacing_m);
 
   updateSound(ratio);
+
+  time += 0.04;
 }
 
 function drawTitle() {
@@ -108,14 +119,19 @@ function drawSpeaker(pos, label) {
   text(label, pos.x - 5, pos.y + 105);
 }
 
-function drawWavefronts(pos, col) {
+function drawTravelingSineWave(pos, col, phaseShift) {
   noFill();
   stroke(col);
-  strokeWeight(2);
+  strokeWeight(3);
 
-  for (let r = lambda; r < 900; r += lambda) {
-    circle(pos.x, pos.y, 2 * r);
+  beginShape();
+
+  for (let x = pos.x + 70; x < width - 40; x += 4) {
+    let y = pos.y + 35 * sin(TWO_PI * (x - pos.x) / lambda - time + phaseShift);
+    vertex(x, y);
   }
+
+  endShape();
 
   strokeWeight(1);
 }
@@ -128,6 +144,31 @@ function drawMic() {
   fill(0);
   textSize(15);
   text("microphone", mic.x + 15, mic.y - 10);
+}
+
+function drawSpeakerSeparationArrow(spacing_m) {
+  let y = speaker1.y + 160;
+  let x1 = speaker1.x + 65;
+  let x2 = speaker2.x + 65;
+
+  stroke(0);
+  strokeWeight(2);
+  line(x1, y, x2, y);
+
+  // Left arrowhead
+  line(x1, y, x1 + 12, y - 7);
+  line(x1, y, x1 + 12, y + 7);
+
+  // Right arrowhead
+  line(x2, y, x2 - 12, y - 7);
+  line(x2, y, x2 - 12, y + 7);
+
+  noStroke();
+  fill(0);
+  textSize(17);
+  textAlign(CENTER);
+  text(`speaker separation = ${spacing_m.toFixed(2)} m`, (x1 + x2) / 2, y + 30);
+  textAlign(LEFT);
 }
 
 function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
@@ -186,15 +227,16 @@ function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
 }
 
 function drawControls(lambda_m, spacing_m) {
+  let sliderY = height - 55;
+
+  lambdaSlider.position(430, sliderY);
+  spacingSlider.position(430, sliderY + 35);
+
   noStroke();
   fill(0);
-  textSize(15);
-
-  text(`wavelength λ = ${lambda_m.toFixed(2)} m`, 430, height - 55);
-  text(`speaker spacing = ${spacing_m.toFixed(2)} m`, 430, height - 25);
-
-  lambdaSlider.position(430, height + 10);
-  spacingSlider.position(430, height + 40);
+  textSize(16);
+  text(`wavelength λ = ${lambda_m.toFixed(2)} m`, 650, sliderY + 15);
+  text(`speaker separation = ${spacing_m.toFixed(2)} m`, 650, sliderY + 50);
 }
 
 function updateSound(ratio) {
@@ -204,8 +246,6 @@ function updateSound(ratio) {
   }
 
   let amp = abs(cos(PI * ratio));
-
-  // Limit maximum volume for classroom comfort
   osc.amp(0.25 * amp, 0.1);
 }
 
