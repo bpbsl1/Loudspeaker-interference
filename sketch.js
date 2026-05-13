@@ -4,8 +4,8 @@ let mic;
 let lambdaSlider;
 let spacingSlider;
 
-let lambda = 100;        // pixels
-let pxToMeter = 0.01;    // 1 px = 0.01 m
+let lambda = 100;
+let pxToMeter = 0.01;
 
 let dragging = false;
 
@@ -25,10 +25,7 @@ function setup() {
   textFont("Arial");
 
   lambdaSlider = createSlider(60, 160, 100, 1);
-  lambdaSlider.parent("canvas-holder");
-
   spacingSlider = createSlider(120, 320, 200, 1);
-  spacingSlider.parent("canvas-holder");
 
   osc = new p5.Oscillator("sine");
   osc.freq(440);
@@ -49,8 +46,8 @@ function draw() {
 
   drawTitle();
 
-  drawTravelingSineWave(speaker1, color(255, 70, 70), 0);
-  drawTravelingSineWave(speaker2, color(255, 145, 0), PI / 8);
+  drawWave(speaker1, color(255, 70, 70), 0);
+  drawWave(speaker2, color(255, 145, 0), 0);
 
   drawSpeaker(speaker1, "1");
   drawSpeaker(speaker2, "2");
@@ -67,203 +64,143 @@ function draw() {
   let spacing_m = spacing * pxToMeter;
 
   stroke(100);
-  strokeWeight(1);
-  line(speaker1.x + 65, speaker1.y, mic.x, mic.y);
-  line(speaker2.x + 65, speaker2.y, mic.x, mic.y);
+  line(speaker1.x + 50, speaker1.y, mic.x, mic.y);
+  line(speaker2.x + 50, speaker2.y, mic.x, mic.y);
 
   noStroke();
   fill(0);
   textSize(16);
-  text("d₁", (speaker1.x + mic.x) / 2 + 20, (speaker1.y + mic.y) / 2 - 15);
-  text("d₂", (speaker2.x + mic.x) / 2 + 20, (speaker2.y + mic.y) / 2 + 20);
+  text("d₁", (speaker1.x + mic.x) / 2, (speaker1.y + mic.y) / 2 - 10);
+  text("d₂", (speaker2.x + mic.x) / 2, (speaker2.y + mic.y) / 2 + 15);
 
   drawMic();
 
-  drawSpeakerSeparationArrow(spacing_m);
-  drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio);
+  drawArrow(spacing_m);
+  drawInfo(d1_m, d2_m, deltaD_m, lambda_m, ratio);
   drawControls(lambda_m, spacing_m);
 
   updateSound(ratio);
 
-  time += 0.04;
+  time += 0.05;
 }
 
-function drawTitle() {
-  noStroke();
-  fill(0);
-  textSize(28);
-  textStyle(BOLD);
-  text("Two In-Phase Loudspeakers", 40, 40);
-
-  textStyle(NORMAL);
-  textSize(17);
-  text("Drag the microphone. Watch how path-length difference controls the sound amplitude.", 40, 70);
-}
-
-function drawSpeaker(pos, label) {
-  push();
-
-  // Box
-  fill(70);
-  stroke(0);
-  strokeWeight(2);
-  rect(pos.x - 25, pos.y - 40, 30, 80, 5);
-
-  // Cone
-  fill(130);
-  ellipse(pos.x + 25, pos.y, 60, 60);
-
-  // Inner cone
-  fill(90);
-  ellipse(pos.x + 25, pos.y, 35, 35);
-
-  // Center cap
-  fill(40);
-  ellipse(pos.x + 25, pos.y, 12, 12);
-
-  // Label
-  noStroke();
-  fill(0);
-  textSize(20);
-  text(label, pos.x - 5, pos.y + 75);
-
-  pop();
-}
-
-function drawTravelingSineWave(pos, col, phaseShift) {
-  noFill();
+// ---------- WAVES ----------
+function drawWave(pos, col, phase) {
   stroke(col);
   strokeWeight(3);
+  noFill();
 
   beginShape();
-
-  for (let x = pos.x + 70; x < width - 40; x += 4) {
-    let y = pos.y + 35 * sin(TWO_PI * (x - pos.x) / lambda - time + phaseShift);
+  for (let x = pos.x + 50; x < width - 40; x += 3) {
+    let y = pos.y + 30 * sin(TWO_PI * (x - pos.x) / lambda - time + phase);
     vertex(x, y);
   }
-
   endShape();
 
   strokeWeight(1);
 }
 
-function drawMic() {
+// ---------- SPEAKER ----------
+function drawSpeaker(pos, label) {
+  fill(70);
+  stroke(0);
+  rect(pos.x - 25, pos.y - 40, 30, 80, 5);
+
+  fill(130);
+  ellipse(pos.x + 25, pos.y, 60, 60);
+
+  fill(90);
+  ellipse(pos.x + 25, pos.y, 35, 35);
+
+  fill(40);
+  ellipse(pos.x + 25, pos.y, 12, 12);
+
   noStroke();
   fill(0);
-  circle(mic.x, mic.y, 18);
+  textSize(20);
+  text(label, pos.x - 5, pos.y + 75);
+}
 
+// ---------- MIC ----------
+function drawMic() {
   fill(0);
-  textSize(15);
+  circle(mic.x, mic.y, 18);
   text("microphone", mic.x + 15, mic.y - 10);
 }
 
-function drawSpeakerSeparationArrow(spacing_m) {
-  let y = speaker1.y + 160;
-  let x1 = speaker1.x + 65;
-  let x2 = speaker2.x + 65;
+// ---------- ARROW ----------
+function drawArrow(spacing_m) {
+  let y = speaker1.y + 150;
+  let x1 = speaker1.x + 50;
+  let x2 = speaker2.x + 50;
 
   stroke(0);
   strokeWeight(2);
   line(x1, y, x2, y);
 
-  // Left arrowhead
-  line(x1, y, x1 + 12, y - 7);
-  line(x1, y, x1 + 12, y + 7);
+  line(x1, y, x1 + 10, y - 6);
+  line(x1, y, x1 + 10, y + 6);
 
-  // Right arrowhead
-  line(x2, y, x2 - 12, y - 7);
-  line(x2, y, x2 - 12, y + 7);
+  line(x2, y, x2 - 10, y - 6);
+  line(x2, y, x2 - 10, y + 6);
 
   noStroke();
-  fill(0);
-  textSize(17);
   textAlign(CENTER);
-  text(`speaker separation = ${spacing_m.toFixed(2)} m`, (x1 + x2) / 2, y + 30);
+  text(`speaker separation = ${spacing_m.toFixed(2)} m`, (x1 + x2) / 2, y + 25);
   textAlign(LEFT);
 }
 
-function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
-  let panelX = 35;
-  let panelY = 105;
-  let panelW = 350;
-  let panelH = 255;
-
+// ---------- INFO BOX ----------
+function drawInfo(d1, d2, dd, lambda, ratio) {
   fill(255);
   stroke(0);
-  strokeWeight(2);
-  rect(panelX, panelY, panelW, panelH, 12);
+  rect(35, 105, 350, 250, 12);
 
   noStroke();
   fill(0);
   textSize(18);
-  textStyle(BOLD);
-  text("Measurements in meters", panelX + 20, panelY + 35);
+  text("Measurements in meters", 55, 140);
 
-  textStyle(NORMAL);
-  textSize(17);
-  text(`d₁ = ${d1_m.toFixed(2)} m`, panelX + 20, panelY + 75);
-  text(`d₂ = ${d2_m.toFixed(2)} m`, panelX + 20, panelY + 110);
-  text(`Δd = |d₁ - d₂| = ${deltaD_m.toFixed(2)} m`, panelX + 20, panelY + 145);
-  text(`λ = ${lambda_m.toFixed(2)} m`, panelX + 20, panelY + 180);
-  text(`Δd / λ = ${ratio.toFixed(2)}`, panelX + 20, panelY + 215);
-
-  let label;
+  textSize(16);
+  text(`d₁ = ${d1.toFixed(2)} m`, 55, 180);
+  text(`d₂ = ${d2.toFixed(2)} m`, 55, 210);
+  text(`Δd = ${dd.toFixed(2)} m`, 55, 240);
+  text(`λ = ${lambda.toFixed(2)} m`, 55, 270);
+  text(`Δd / λ = ${ratio.toFixed(2)}`, 55, 300);
 
   if (abs(ratio - round(ratio)) < 0.05) {
-    label = "Constructive: loud";
     fill(0, 130, 0);
+    text("Constructive: loud", 55, 330);
   } else if (abs(ratio - (floor(ratio) + 0.5)) < 0.05) {
-    label = "Destructive: quiet";
     fill(180, 0, 0);
-  } else {
-    label = "Intermediate";
-    fill(0);
-  }
-
-  textStyle(BOLD);
-  text(label, panelX + 20, panelY + 245);
-  textStyle(NORMAL);
-
-  fill(0);
-  textSize(17);
-  text("Constructive: Δd = 0, λ, 2λ, 3λ, ...", 40, height - 105);
-  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 40, height - 75);
-
-  if (!soundStarted) {
-    fill(180, 0, 0);
-    textStyle(BOLD);
-    text("Click inside the simulation to start sound.", 40, height - 40);
-    textStyle(NORMAL);
+    text("Destructive: quiet", 55, 330);
   }
 }
 
+// ---------- CONTROLS (FIXED!) ----------
 function drawControls(lambda_m, spacing_m) {
-  let x0 = 430;
-  let y0 = height - 70;
+  let x = 420;
+  let y = height - 90;
 
-  // Position sliders
-  lambdaSlider.position(x0, y0);
-  spacingSlider.position(x0, y0 + 40);
+  lambdaSlider.position(x, y);
+  spacingSlider.position(x, y + 40);
 
-  // Labels RIGHT NEXT to sliders
   noStroke();
   fill(0);
   textSize(16);
 
-  text(`λ = ${lambda_m.toFixed(2)} m`, x0 + 180, y0 + 15);
-  text(`separation = ${spacing_m.toFixed(2)} m`, x0 + 180, y0 + 55);
+  text(`λ = ${lambda_m.toFixed(2)} m`, x + 180, y + 15);
+  text(`separation = ${spacing_m.toFixed(2)} m`, x + 180, y + 55);
 }
 
+// ---------- SOUND ----------
 function updateSound(ratio) {
-  if (!soundStarted) {
-    osc.amp(0);
-    return;
-  }
-
+  if (!soundStarted) return;
   let amp = abs(cos(PI * ratio));
   osc.amp(0.25 * amp, 0.1);
 }
 
+// ---------- INTERACTION ----------
 function mousePressed() {
   userStartAudio();
   soundStarted = true;
@@ -282,4 +219,14 @@ function mouseDragged() {
 
 function mouseReleased() {
   dragging = false;
+}
+
+// ---------- TITLE ----------
+function drawTitle() {
+  fill(0);
+  textSize(28);
+  text("Two In-Phase Loudspeakers", 40, 40);
+
+  textSize(16);
+  text("Drag the microphone. Observe interference.", 40, 70);
 }
