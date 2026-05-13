@@ -7,6 +7,8 @@ let speaker2;
 let mic;
 let wavelengthSlider;
 let spacingSlider;
+let wavelengthLabel;
+let spacingLabel;
 let showRingsCheckbox;
 let showNodalCheckbox;
 let time = 0;
@@ -22,12 +24,20 @@ function setup() {
   mic = createVector(710, 280);
 
   wavelengthSlider = createSlider(40, 160, 90, 1);
-  wavelengthSlider.position(30, height + 80);
+  wavelengthSlider.position(30, height + 25);
   wavelengthSlider.parent("sketch-holder");
 
+  wavelengthLabel = createSpan("");
+  wavelengthLabel.position(230, height + 25);
+  wavelengthLabel.parent("sketch-holder");
+
   spacingSlider = createSlider(60, 300, 160, 1);
-  spacingSlider.position(30, height + 115);
+  spacingSlider.position(30, height + 60);
   spacingSlider.parent("sketch-holder");
+
+  spacingLabel = createSpan("");
+  spacingLabel.position(230, height + 60);
+  spacingLabel.parent("sketch-holder");
 
   showRingsCheckbox = createCheckbox("show circular wavefronts", true);
   showRingsCheckbox.position(260, height + 78);
@@ -43,6 +53,8 @@ function draw() {
 
   const lambda = wavelengthSlider.value();
   const spacing = spacingSlider.value();
+  wavelengthLabel.html(`wavelength λ = ${lambda}px`);
+  spacingLabel.html(`speaker spacing = ${spacing}px`);
 
   const centerX = 310;
   speaker1.x = centerX - spacing / 2;
@@ -80,8 +92,7 @@ function drawTitle(lambda, spacing) {
 
   textSize(14);
   fill(30);
-  text(`wavelength λ = ${lambda}px`, 35, height - 62);
-  text(`speaker spacing = ${spacing}px`, 35, height - 27);
+  
 }
 
 function drawSpeakers() {
