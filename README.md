@@ -19,20 +19,7 @@ Open `index.html` in a browser.
 
 Or use VS Code with the Live Server extension.
 
-## Publish with GitHub Pages
 
-1. Create a new GitHub repository, for example `loudspeaker-interference`.
-2. Upload these files:
-   - `index.html`
-   - `style.css`
-   - `sketch.js`
-   - `README.md`
-3. Go to **Settings → Pages**.
-4. Under **Build and deployment**, choose:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/root`
-5. Save. GitHub will give you a public link.
 
 ## Classroom use
 
