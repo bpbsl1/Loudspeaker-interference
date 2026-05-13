@@ -21,9 +21,9 @@ function setup() {
   const canvas = createCanvas(940, 620);
   canvas.parent("canvas-holder");
 
-  speaker1 = createVector(230, 220);
-  speaker2 = createVector(390, 220);
-  mic = createVector(710, 280);
+  speaker1 = createVector(230, 180);
+  speaker2 = createVector(390, 180);
+  mic = createVector(710, 180);
 
   wavelengthSlider = createSlider(40, 160, 90, 1);
   wavelengthSlider.position(30, height + 25);
