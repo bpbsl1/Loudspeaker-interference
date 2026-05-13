@@ -21,9 +21,9 @@ function setup() {
   const canvas = createCanvas(940, 620);
   canvas.parent("canvas-holder");
 
-  speaker1 = createVector(230, 280);
-  speaker2 = createVector(390, 280);
-  mic = createVector(710, 180);
+  speaker1 = createVector(230, 260);
+  speaker2 = createVector(390, 260);
+  mic = createVector(750, 260);
 
   wavelengthSlider = createSlider(40, 160, 90, 1);
   wavelengthSlider.position(30, height + 25);
@@ -61,7 +61,7 @@ function draw() {
   wavelengthLabel.html(`wavelength λ = ${lambda}px`);
   spacingLabel.html(`speaker spacing = ${spacing}px`);
 
-  const centerX = 310;
+  const centerX = width*0.5;
   speaker1.x = centerX - spacing / 2;
   speaker2.x = centerX + spacing / 2;
 
@@ -180,8 +180,8 @@ function drawPathLines(lambda) {
   textSize(15);
   text(`d₁ = ${nf(d1, 1, 1)} px`, (speaker1.x + mic.x) / 2, (speaker1.y + mic.y) / 2 - 10);
   text(`d₂ = ${nf(d2, 1, 1)} px`, (speaker2.x + mic.x) / 2, (speaker2.y + mic.y) / 2 + 20);
-  text(`Δd = |d₁ - d₂| = ${nf(delta, 1, 1)} px`, 520, 92);
-  text(`Δd / λ = ${nf(delta / lambda, 1, 2)}`, 520, 116);
+  text(`Δd = |d₁ - d₂| = ...`, width - 260, 100);
+  text(`Δd / λ = ...`, width - 260, 120);
 }
 
 
@@ -211,7 +211,7 @@ function drawInterferenceMap(lambda) {
 }
 
 function drawTravelingWaveDiagram(lambda) {
-  const y0 = 500;
+  const y0 = 540;
   const x0 = 220;
   const x1 = 860;
   const amp = 45;
@@ -250,8 +250,7 @@ function drawTravelingWaveDiagram(lambda) {
 
   noStroke();
   fill(0, 120, 0);
-  textSize(18);
-  text(`resulting amplitude ≈ ${nf(resultAmp, 1, 2)} × one speaker`, 360, y0 + 82);
+  
 }
 
 function drawInfoPanel(lambda) {
@@ -273,15 +272,14 @@ function drawInfoPanel(lambda) {
 
   fill(245);
   stroke(180);
-  rect(35, 105, 390, 96, 10);
+  rect(40, 120, 380, 100, 10);
 
   noStroke();
   fill(0);
   textSize(16);
-  text(message, 55, 138);
-  textSize(14);
-  text("Constructive: Δd = 0, λ, 2λ, ...", 55, 165);
-  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 55, 186);
+  text(message, 60, 150);
+  text("Constructive: Δd = 0, λ, 2λ, ...", 60, 175);
+  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 60, 195);
   
 }
 
