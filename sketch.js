@@ -1,261 +1,125 @@
-// Loudspeaker Interference Demo
-// Built for classroom use with p5.js
-// Two speakers are in phase. Drag the microphone to change path-length difference.
-
-let speaker1;
-let speaker2;
+let speaker1, speaker2;
 let mic;
-let wavelengthSlider;
-let spacingSlider;
-let showRingsCheckbox;
-let showNodalCheckbox;
-let time = 0;
 
-const waveSpeed = 2.0; // visual speed only, not actual speed of sound
+let lambda = 100; // pixels
+let csound = 343;
+
+let dragging = false;
+
+// Conversion: pixels → meters
+let pxToMeter = 0.01; // 1 px = 1 cm
 
 function setup() {
-  const canvas = createCanvas(940, 620);
-  canvas.parent("sketch-holder");
+  createCanvas(800, 500);
 
-  speaker1 = createVector(230, 220);
-  speaker2 = createVector(390, 220);
-  mic = createVector(710, 280);
+  speaker1 = createVector(width / 2 - 100, 200);
+  speaker2 = createVector(width / 2 + 100, 200);
 
-  wavelengthSlider = createSlider(40, 160, 90, 1);
-  wavelengthSlider.position(30, height + 80);
-  wavelengthSlider.parent("sketch-holder");
+  mic = createVector(width / 2 + 200, 300);
 
-  spacingSlider = createSlider(60, 300, 160, 1);
-  spacingSlider.position(30, height + 115);
-  spacingSlider.parent("sketch-holder");
-
-  showRingsCheckbox = createCheckbox("show circular wavefronts", true);
-  showRingsCheckbox.position(260, height + 78);
-  showRingsCheckbox.parent("sketch-holder");
-
-  showNodalCheckbox = createCheckbox("show approximate nodal/antinodal bands", true);
-  showNodalCheckbox.position(260, height + 108);
-  showNodalCheckbox.parent("sketch-holder");
+  textFont("Arial");
 }
 
 function draw() {
   background(255);
 
-  const lambda = wavelengthSlider.value();
-  const spacing = spacingSlider.value();
-
-  const centerX = 310;
-  speaker1.x = centerX - spacing / 2;
-  speaker2.x = centerX + spacing / 2;
-
-  drawTitle(lambda, spacing);
-
-  if (showNodalCheckbox.checked()) {
-    drawInterferenceMap(lambda);
-  }
-
-  if (showRingsCheckbox.checked()) {
-    drawCircularWaves(speaker1, lambda, color(230, 70, 70));
-    drawCircularWaves(speaker2, lambda, color(255, 145, 50));
-  }
-
-  drawSpeakers();
-  drawMic();
-  drawPathLines(lambda);
-  drawTravelingWaveDiagram(lambda);
-  drawInfoPanel(lambda);
-
-  time += 0.025;
-}
-
-function drawTitle(lambda, spacing) {
-  noStroke();
+  // Title
   fill(0);
-  textSize(20);
-  textStyle(BOLD);
-  text("Two in-phase loudspeakers", 25, 32);
-  textStyle(NORMAL);
-  textSize(15);
-  text("Drag the microphone. Watch how the path-length difference controls the sound amplitude.", 25, 56);
+  textSize(18);
+  text("Two In-Phase Loudspeakers", 20, 30);
 
   textSize(14);
-  fill(30);
-  text(`wavelength λ = ${lambda}px`, 35, height - 62);
-  text(`speaker spacing = ${spacing}px`, 35, height - 27);
-}
+  text("Drag the microphone. Observe interference.", 20, 50);
 
-function drawSpeakers() {
-  drawSpeaker(speaker1.x, speaker1.y, "1");
-  drawSpeaker(speaker2.x, speaker2.y, "2");
+  // Draw speakers
+  drawSpeaker(speaker1);
+  drawSpeaker(speaker2);
 
-  stroke(0);
-  strokeWeight(1);
-  line(speaker1.x, speaker1.y - 80, speaker1.x, speaker1.y + 300);
-  line(speaker2.x, speaker2.y - 80, speaker2.x, speaker2.y + 300);
-  drawingContext.setLineDash([]);
+  // Draw wavefronts
+  drawWavefronts(speaker1, color(255, 100, 100));
+  drawWavefronts(speaker2, color(255, 150, 0));
 
-  noStroke();
+  // Draw mic
   fill(0);
-  textSize(16);
-  text("speakers are in phase", speaker1.x - 50, speaker1.y - 105);
-}
+  circle(mic.x, mic.y, 10);
 
-function drawSpeaker(x, y, label) {
-  push();
-  translate(x, y);
-  fill(120);
-  stroke(40);
-  strokeWeight(2);
-  rect(-28, -22, 15, 44);
-  quad(-13, -15, 17, -35, 17, 35, -13, 15);
-  fill(0);
-  noStroke();
-  textSize(18);
-  text(label, -5, 58);
-  pop();
-}
+  // Distances
+  let d1 = dist(mic.x, mic.y, speaker1.x, speaker1.y);
+  let d2 = dist(mic.x, mic.y, speaker2.x, speaker2.y);
 
-function drawMic() {
-  fill(0);
-  noStroke();
-  circle(mic.x, mic.y, 14);
-  textSize(15);
-  text("microphone", mic.x + 14, mic.y - 12);
-}
+  // Convert to meters
+  let d1_m = d1 * pxToMeter;
+  let d2_m = d2 * pxToMeter;
+  let lambda_m = lambda * pxToMeter;
+  let delta_d_m = abs(d1 - d2) * pxToMeter;
 
-function drawPathLines(lambda) {
-  const d1 = dist(speaker1.x, speaker1.y, mic.x, mic.y);
-  const d2 = dist(speaker2.x, speaker2.y, mic.x, mic.y);
-  const delta = abs(d1 - d2);
+  let ratio = delta_d_m / lambda_m;
 
-  strokeWeight(2);
-  stroke(80, 80, 80, 180);
+  // Draw lines to mic
+  stroke(150);
   line(speaker1.x, speaker1.y, mic.x, mic.y);
-  stroke(80, 80, 80, 100);
   line(speaker2.x, speaker2.y, mic.x, mic.y);
-
   noStroke();
+
+  // Display values near mic
   fill(0);
-  textSize(15);
-  text(`d₁ = ${nf(d1, 1, 1)} px`, (speaker1.x + mic.x) / 2, (speaker1.y + mic.y) / 2 - 10);
-  text(`d₂ = ${nf(d2, 1, 1)} px`, (speaker2.x + mic.x) / 2, (speaker2.y + mic.y) / 2 + 20);
-  text(`Δd = |d₁ - d₂| = ${nf(delta, 1, 1)} px`, 520, 92);
-  text(`Δd / λ = ${nf(delta / lambda, 1, 2)}`, 520, 116);
-}
+  textSize(13);
+  text(`d1 = ${d1_m.toFixed(2)} m`, mic.x + 10, mic.y - 20);
+  text(`d2 = ${d2_m.toFixed(2)} m`, mic.x + 10, mic.y);
+  text(`Δd = ${delta_d_m.toFixed(2)} m`, mic.x + 10, mic.y + 20);
 
-function drawCircularWaves(source, lambda, c) {
-  noFill();
-  stroke(c);
-  strokeWeight(2);
-  const maxR = 900;
-  for (let r = (time * waveSpeed * lambda) % lambda; r < maxR; r += lambda) {
-    circle(source.x, source.y, 2 * r);
-  }
-}
-
-function drawInterferenceMap(lambda) {
-  loadPixels();
-  const step = 6;
-  for (let x = 0; x < width; x += step) {
-    for (let y = 85; y < height - 115; y += step) {
-      const r1 = dist(x, y, speaker1.x, speaker1.y);
-      const r2 = dist(x, y, speaker2.x, speaker2.y);
-      const phase1 = TWO_PI * (r1 / lambda - time);
-      const phase2 = TWO_PI * (r2 / lambda - time);
-      const pressure = sin(phase1) + sin(phase2);
-      const amp = abs(pressure) / 2;
-
-      noStroke();
-      if (amp > 0.85) {
-        fill(30, 120, 210, 35); // antinodal, louder
-        rect(x, y, step, step);
-      } else if (amp < 0.12) {
-        fill(240, 40, 40, 40); // nodal, quiet
-        rect(x, y, step, step);
-      }
-    }
-  }
-}
-
-function drawTravelingWaveDiagram(lambda) {
-  const y0 = 500;
-  const x0 = 220;
-  const x1 = 860;
-  const amp = 45;
-
-  stroke(0);
-  strokeWeight(1);
-  line(70, y0, 900, y0);
-  noStroke();
-  fill(0);
-  textSize(16);
-  text("resulting pressure wave at the microphone", 70, y0 - 70);
-  text("Δp", 35, y0 - 50);
-  text("x", 905, y0 + 5);
-
-  const d1 = dist(speaker1.x, speaker1.y, mic.x, mic.y);
-  const d2 = dist(speaker2.x, speaker2.y, mic.x, mic.y);
-  const delta = abs(d1 - d2);
-  const phaseDiff = TWO_PI * delta / lambda;
-  const resultAmp = abs(2 * cos(phaseDiff / 2));
-  const scaledAmp = amp * resultAmp / 2;
-
-  noFill();
-  stroke(0, 120, 200);
-  strokeWeight(3);
-  beginShape();
-  for (let x = x0; x <= x1; x += 3) {
-    const y = y0 - scaledAmp * sin(TWO_PI * (x - x0) / lambda - time * TWO_PI);
-    vertex(x, y);
-  }
-  endShape();
-
-  fill(0, 120, 0);
-  noStroke();
-  textSize(18);
-  text(`superposed amplitude ≈ ${nf(resultAmp, 1, 2)} × one speaker`, 360, y0 + 82);
-}
-
-function drawInfoPanel(lambda) {
-  const d1 = dist(speaker1.x, speaker1.y, mic.x, mic.y);
-  const d2 = dist(speaker2.x, speaker2.y, mic.x, mic.y);
-  const delta = abs(d1 - d2);
-  const ratio = delta / lambda;
-  const nearestInteger = round(ratio);
-  const nearestHalf = floor(ratio) + 0.5;
-
-  let message;
-  if (abs(ratio - nearestInteger) < 0.08) {
-    message = "LOUD: constructive interference, Δd ≈ mλ";
-  } else if (abs(ratio - nearestHalf) < 0.08) {
-    message = "QUIET: destructive interference, Δd ≈ (m + 1/2)λ";
-  } else {
-    message = "PARTIAL interference";
-  }
-
-  fill(245);
-  stroke(180);
-  rect(510, 135, 390, 96, 10);
-
-  noStroke();
-  fill(0);
-  textSize(16);
-  text(message, 530, 168);
+  // Bottom info
   textSize(14);
-  text("Constructive: Δd = 0, λ, 2λ, ...", 530, 195);
-  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 530, 216);
+  text(`λ = ${lambda_m.toFixed(2)} m`, 20, height - 60);
+  text(`Δd / λ = ${ratio.toFixed(2)}`, 20, height - 40);
+
+  // Interference type
+  let label = "";
+
+  if (abs(ratio - round(ratio)) < 0.05) {
+    label = "Constructive (loud)";
+  } else if (abs(ratio - (floor(ratio) + 0.5)) < 0.05) {
+    label = "Destructive (quiet)";
+  } else {
+    label = "Intermediate";
+  }
+
+  text(label, 20, height - 20);
+}
+
+// -------------------------
+
+function drawSpeaker(pos) {
+  fill(100);
+  rect(pos.x - 10, pos.y - 20, 20, 40);
+}
+
+// -------------------------
+
+function drawWavefronts(pos, col) {
+  noFill();
+  stroke(col);
+  for (let r = 0; r < width; r += lambda) {
+    circle(pos.x, pos.y, 2 * r);
+  }
+  noStroke();
+}
+
+// -------------------------
+
+function mousePressed() {
+  if (dist(mouseX, mouseY, mic.x, mic.y) < 10) {
+    dragging = true;
+  }
 }
 
 function mouseDragged() {
-  if (mouseX > 0 && mouseX < width && mouseY > 75 && mouseY < height - 110) {
+  if (dragging) {
     mic.x = mouseX;
     mic.y = mouseY;
   }
 }
 
-function mousePressed() {
-  if (dist(mouseX, mouseY, mic.x, mic.y) < 30) {
-    mic.x = mouseX;
-    mic.y = mouseY;
-  }
+function mouseReleased() {
+  dragging = false;
 }
