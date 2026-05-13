@@ -9,7 +9,7 @@ let wavelengthSlider;
 let spacingSlider;
 let wavelengthLabel;
 let spacingLabel;
-let showRingsCheckbox;
+
 let showNodalCheckbox;
 let time = 0;
 
@@ -39,9 +39,7 @@ function setup() {
   spacingLabel.position(230, height + 60);
   spacingLabel.parent("canvas-holder");
 
-  showRingsCheckbox = createCheckbox("show circular wavefronts", true);
-  showRingsCheckbox.position(260, height + 78);
-  showRingsCheckbox.parent("canvas-holder");
+
 
   showNodalCheckbox = createCheckbox("show approximate nodal/antinodal bands", true);
   showNodalCheckbox.position(260, height + 108);
@@ -66,10 +64,8 @@ function draw() {
     drawInterferenceMap(lambda);
   }
 
-  if (showRingsCheckbox.checked()) {
-    drawCircularWaves(speaker1, lambda, color(230, 70, 70));
-    drawCircularWaves(speaker2, lambda, color(255, 145, 50));
-  }
+  drawSineWaveFromSpeaker(speaker1, lambda, color(230, 70, 70), 0);
+  drawSineWaveFromSpeaker(speaker2, lambda, color(255, 145, 50), 0);
 
   drawSpeakers();
   drawMic();
@@ -78,6 +74,24 @@ function draw() {
   drawInfoPanel(lambda);
 
   time += 0.025;
+}
+function drawSineWaveFromSpeaker(source, lambda, c, phaseShift) {
+  const xStart = source.x + 20;
+  const xEnd = width - 40;
+  const amp = 35;
+
+  noFill();
+  stroke(c);
+  strokeWeight(3);
+
+  beginShape();
+  for (let x = xStart; x <= xEnd; x += 3) {
+    const y = source.y + amp * sin(TWO_PI * (x - xStart) / lambda - time * TWO_PI + phaseShift);
+    vertex(x, y);
+  }
+  endShape();
+
+  strokeWeight(1);
 }
 
 function drawTitle(lambda, spacing) {
@@ -154,15 +168,7 @@ function drawPathLines(lambda) {
   text(`Δd / λ = ${nf(delta / lambda, 1, 2)}`, 520, 116);
 }
 
-function drawCircularWaves(source, lambda, c) {
-  noFill();
-  stroke(c);
-  strokeWeight(2);
-  const maxR = 900;
-  for (let r = (time * waveSpeed * lambda) % lambda; r < maxR; r += lambda) {
-    circle(source.x, source.y, 2 * r);
-  }
-}
+
 
 function drawInterferenceMap(lambda) {
   loadPixels();
@@ -194,26 +200,31 @@ function drawTravelingWaveDiagram(lambda) {
   const x1 = 860;
   const amp = 45;
 
-  stroke(0);
-  strokeWeight(1);
-  line(70, y0, 900, y0);
-  noStroke();
-  fill(0);
-  textSize(16);
-  text("resulting pressure wave at the microphone", 70, y0 - 70);
-  text("Δp", 35, y0 - 50);
-  text("x", 905, y0 + 5);
-
   const d1 = dist(speaker1.x, speaker1.y, mic.x, mic.y);
   const d2 = dist(speaker2.x, speaker2.y, mic.x, mic.y);
   const delta = abs(d1 - d2);
+
   const phaseDiff = TWO_PI * delta / lambda;
+
+  // Resulting amplitude from two equal waves
   const resultAmp = abs(2 * cos(phaseDiff / 2));
   const scaledAmp = amp * resultAmp / 2;
+
+  stroke(0);
+  strokeWeight(1);
+  line(70, y0, 900, y0);
+
+  noStroke();
+  fill(0);
+  textSize(16);
+  text("superimposed pressure wave at the microphone", 70, y0 - 70);
+  text("Δp", 35, y0 - 50);
+  text("x", 905, y0 + 5);
 
   noFill();
   stroke(0, 120, 200);
   strokeWeight(3);
+
   beginShape();
   for (let x = x0; x <= x1; x += 3) {
     const y = y0 - scaledAmp * sin(TWO_PI * (x - x0) / lambda - time * TWO_PI);
@@ -221,10 +232,10 @@ function drawTravelingWaveDiagram(lambda) {
   }
   endShape();
 
-  fill(0, 120, 0);
   noStroke();
+  fill(0, 120, 0);
   textSize(18);
-  text(`superposed amplitude ≈ ${nf(resultAmp, 1, 2)} × one speaker`, 360, y0 + 82);
+  text(`resulting amplitude ≈ ${nf(resultAmp, 1, 2)} × one speaker`, 360, y0 + 82);
 }
 
 function drawInfoPanel(lambda) {
@@ -246,15 +257,16 @@ function drawInfoPanel(lambda) {
 
   fill(245);
   stroke(180);
-  rect(510, 135, 390, 96, 10);
+  rect(35, 105, 390, 96, 10);
 
   noStroke();
   fill(0);
   textSize(16);
-  text(message, 530, 168);
+  text(message, 55, 138);
   textSize(14);
-  text("Constructive: Δd = 0, λ, 2λ, ...", 530, 195);
-  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 530, 216);
+  text("Constructive: Δd = 0, λ, 2λ, ...", 55, 165);
+  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 55, 186);
+  
 }
 
 function mouseDragged() {
