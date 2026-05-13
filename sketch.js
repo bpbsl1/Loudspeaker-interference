@@ -13,6 +13,8 @@ let spacingLabel;
 let showNodalCheckbox;
 let time = 0;
 
+let osc;
+let soundStarted = false;
 const waveSpeed = 2.0; // visual speed only, not actual speed of sound
 
 function setup() {
@@ -44,6 +46,11 @@ function setup() {
   showNodalCheckbox = createCheckbox("show approximate nodal/antinodal bands", true);
   showNodalCheckbox.position(260, height + 108);
   showNodalCheckbox.parent("canvas-holder");
+
+  osc = new p5.Oscillator("sine");
+  osc.freq(440);
+  osc.amp(0);
+  osc.start();
 }
 
 function draw() {
@@ -58,6 +65,15 @@ function draw() {
   speaker1.x = centerX - spacing / 2;
   speaker2.x = centerX + spacing / 2;
 
+  const d1 = dist(speaker1.x, speaker1.y, mic.x, mic.y);
+  const d2 = dist(speaker2.x, speaker2.y, mic.x, mic.y);
+  const delta = abs(d1 - d2);
+
+  if (soundStarted) {
+  const ratio = delta / lambda;
+  const amp = abs(cos(PI * ratio));
+  osc.amp(0.25 * amp, 0.1);
+}
   drawTitle(lambda, spacing);
 
   if (showNodalCheckbox.checked()) {
@@ -277,6 +293,9 @@ function mouseDragged() {
 }
 
 function mousePressed() {
+  userStartAudio();
+  soundStarted = true;
+
   if (dist(mouseX, mouseY, mic.x, mic.y) < 30) {
     mic.x = mouseX;
     mic.y = mouseY;
