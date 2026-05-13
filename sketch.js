@@ -1,27 +1,54 @@
 let speaker1, speaker2;
 let mic;
 
+let lambdaSlider;
+let spacingSlider;
+
 let lambda = 100;        // pixels
-let pxToMeter = 0.01;    // 1 pixel = 0.01 m = 1 cm
+let pxToMeter = 0.01;    // 1 px = 0.01 m = 1 cm
 
 let dragging = false;
 
-function setup() {
-  createCanvas(900, 600);
+let osc;
+let soundStarted = false;
 
-  speaker1 = createVector(300, 260);
-  speaker2 = createVector(500, 260);
-  mic = createVector(700, 330);
+function setup() {
+  let canvas = createCanvas(1000, 620);
+  canvas.parent("canvas-holder");
+
+  speaker1 = createVector(430, 300);
+  speaker2 = createVector(630, 300);
+  mic = createVector(820, 360);
 
   textFont("Arial");
+
+  lambdaSlider = createSlider(60, 160, 100, 1);
+  lambdaSlider.parent("canvas-holder");
+
+  spacingSlider = createSlider(120, 320, 200, 1);
+  spacingSlider.parent("canvas-holder");
+
+  osc = new p5.Oscillator("sine");
+  osc.freq(440);
+  osc.amp(0);
+  osc.start();
 }
 
 function draw() {
   background(255);
 
+  lambda = lambdaSlider.value();
+
+  let spacing = spacingSlider.value();
+  let centerX = 530;
+
+  speaker1.x = centerX - spacing / 2;
+  speaker2.x = centerX + spacing / 2;
+
   drawTitle();
-  drawWavefronts(speaker1, color(255, 80, 80));
-  drawWavefronts(speaker2, color(255, 150, 0));
+
+  drawWavefronts(speaker1, color(255, 70, 70));
+  drawWavefronts(speaker2, color(255, 145, 0));
 
   drawSpeaker(speaker1, "1");
   drawSpeaker(speaker2, "2");
@@ -35,40 +62,50 @@ function draw() {
   let d2_m = d2 * pxToMeter;
   let deltaD_m = deltaD * pxToMeter;
   let lambda_m = lambda * pxToMeter;
+  let spacing_m = spacing * pxToMeter;
 
-  stroke(80);
+  stroke(100);
+  strokeWeight(1);
   line(speaker1.x, speaker1.y, mic.x, mic.y);
   line(speaker2.x, speaker2.y, mic.x, mic.y);
 
   drawMic();
 
   drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio);
+  drawControls(lambda_m, spacing_m);
+
+  updateSound(ratio);
 }
 
 function drawTitle() {
   noStroke();
   fill(0);
-  textSize(24);
+  textSize(28);
   textStyle(BOLD);
-  text("Two In-Phase Loudspeakers", 30, 40);
+  text("Two In-Phase Loudspeakers", 40, 40);
 
   textStyle(NORMAL);
-  textSize(16);
-  text("Drag the microphone. Watch how path-length difference changes the sound.", 30, 70);
+  textSize(17);
+  text("Drag the microphone. Watch how path-length difference controls the sound amplitude.", 40, 70);
 }
 
 function drawSpeaker(pos, label) {
   fill(90);
   stroke(0);
-  rect(pos.x - 12, pos.y - 30, 24, 60);
+  strokeWeight(2);
+  rect(pos.x - 12, pos.y - 35, 24, 70);
 
   fill(130);
-  triangle(pos.x + 12, pos.y - 35, pos.x + 60, pos.y - 60, pos.x + 60, pos.y + 60);
+  triangle(
+    pos.x + 12, pos.y - 45,
+    pos.x + 70, pos.y - 75,
+    pos.x + 70, pos.y + 75
+  );
 
   noStroke();
   fill(0);
-  textSize(22);
-  text(label, pos.x - 5, pos.y + 85);
+  textSize(24);
+  text(label, pos.x - 5, pos.y + 105);
 }
 
 function drawWavefronts(pos, col) {
@@ -76,7 +113,7 @@ function drawWavefronts(pos, col) {
   stroke(col);
   strokeWeight(2);
 
-  for (let r = lambda; r < 700; r += lambda) {
+  for (let r = lambda; r < 900; r += lambda) {
     circle(pos.x, pos.y, 2 * r);
   }
 
@@ -86,18 +123,18 @@ function drawWavefronts(pos, col) {
 function drawMic() {
   noStroke();
   fill(0);
-  circle(mic.x, mic.y, 16);
+  circle(mic.x, mic.y, 18);
 
   fill(0);
-  textSize(14);
+  textSize(15);
   text("microphone", mic.x + 15, mic.y - 10);
 }
 
 function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
-  let panelX = 570;
-  let panelY = 95;
-  let panelW = 300;
-  let panelH = 210;
+  let panelX = 35;
+  let panelY = 105;
+  let panelW = 350;
+  let panelH = 255;
 
   fill(255);
   stroke(0);
@@ -106,49 +143,85 @@ function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
 
   noStroke();
   fill(0);
-  textSize(16);
+  textSize(18);
   textStyle(BOLD);
   text("Measurements in meters", panelX + 20, panelY + 35);
 
   textStyle(NORMAL);
-  textSize(15);
-  text(`d₁ = ${d1_m.toFixed(2)} m`, panelX + 20, panelY + 70);
-  text(`d₂ = ${d2_m.toFixed(2)} m`, panelX + 20, panelY + 100);
-  text(`Δd = |d₁ - d₂| = ${deltaD_m.toFixed(2)} m`, panelX + 20, panelY + 130);
-  text(`λ = ${lambda_m.toFixed(2)} m`, panelX + 20, panelY + 160);
-  text(`Δd / λ = ${ratio.toFixed(2)}`, panelX + 20, panelY + 190);
+  textSize(17);
+  text(`d₁ = ${d1_m.toFixed(2)} m`, panelX + 20, panelY + 75);
+  text(`d₂ = ${d2_m.toFixed(2)} m`, panelX + 20, panelY + 110);
+  text(`Δd = |d₁ - d₂| = ${deltaD_m.toFixed(2)} m`, panelX + 20, panelY + 145);
+  text(`λ = ${lambda_m.toFixed(2)} m`, panelX + 20, panelY + 180);
+  text(`Δd / λ = ${ratio.toFixed(2)}`, panelX + 20, panelY + 215);
 
   let label;
 
   if (abs(ratio - round(ratio)) < 0.05) {
     label = "Constructive: loud";
+    fill(0, 130, 0);
   } else if (abs(ratio - (floor(ratio) + 0.5)) < 0.05) {
     label = "Destructive: quiet";
+    fill(180, 0, 0);
   } else {
     label = "Intermediate";
+    fill(0);
   }
 
-  fill(0, 130, 0);
   textStyle(BOLD);
-  text(label, 30, height - 40);
+  text(label, panelX + 20, panelY + 245);
   textStyle(NORMAL);
 
   fill(0);
+  textSize(17);
+  text("Constructive: Δd = 0, λ, 2λ, 3λ, ...", 40, height - 105);
+  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 40, height - 75);
+
+  if (!soundStarted) {
+    fill(180, 0, 0);
+    textStyle(BOLD);
+    text("Click inside the simulation to start sound.", 40, height - 40);
+    textStyle(NORMAL);
+  }
+}
+
+function drawControls(lambda_m, spacing_m) {
+  noStroke();
+  fill(0);
   textSize(15);
-  text("Constructive: Δd = 0, λ, 2λ, 3λ, ...", 30, height - 90);
-  text("Destructive: Δd = λ/2, 3λ/2, 5λ/2, ...", 30, height - 65);
+
+  text(`wavelength λ = ${lambda_m.toFixed(2)} m`, 430, height - 55);
+  text(`speaker spacing = ${spacing_m.toFixed(2)} m`, 430, height - 25);
+
+  lambdaSlider.position(430, height + 10);
+  spacingSlider.position(430, height + 40);
+}
+
+function updateSound(ratio) {
+  if (!soundStarted) {
+    osc.amp(0);
+    return;
+  }
+
+  let amp = abs(cos(PI * ratio));
+
+  // Limit maximum volume for classroom comfort
+  osc.amp(0.25 * amp, 0.1);
 }
 
 function mousePressed() {
-  if (dist(mouseX, mouseY, mic.x, mic.y) < 20) {
+  userStartAudio();
+  soundStarted = true;
+
+  if (dist(mouseX, mouseY, mic.x, mic.y) < 25) {
     dragging = true;
   }
 }
 
 function mouseDragged() {
   if (dragging) {
-    mic.x = mouseX;
-    mic.y = mouseY;
+    mic.x = constrain(mouseX, 420, width - 40);
+    mic.y = constrain(mouseY, 110, height - 130);
   }
 }
 
