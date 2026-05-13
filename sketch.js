@@ -17,7 +17,7 @@ const waveSpeed = 2.0; // visual speed only, not actual speed of sound
 
 function setup() {
   const canvas = createCanvas(940, 620);
-  canvas.parent("sketch-holder");
+  canvas.parent("canvas-holder");
 
   speaker1 = createVector(230, 220);
   speaker2 = createVector(390, 220);
@@ -25,27 +25,27 @@ function setup() {
 
   wavelengthSlider = createSlider(40, 160, 90, 1);
   wavelengthSlider.position(30, height + 25);
-  wavelengthSlider.parent("sketch-holder");
+  wavelengthSlider.parent("canvas-holder");
 
   wavelengthLabel = createSpan("");
   wavelengthLabel.position(230, height + 25);
-  wavelengthLabel.parent("sketch-holder");
+  wavelengthLabel.parent("canvas-holder");
 
   spacingSlider = createSlider(60, 300, 160, 1);
   spacingSlider.position(30, height + 60);
-  spacingSlider.parent("sketch-holder");
+  spacingSlider.parent("canvas-holder");
 
   spacingLabel = createSpan("");
   spacingLabel.position(230, height + 60);
-  spacingLabel.parent("sketch-holder");
+  spacingLabel.parent("canvas-holder");
 
   showRingsCheckbox = createCheckbox("show circular wavefronts", true);
   showRingsCheckbox.position(260, height + 78);
-  showRingsCheckbox.parent("sketch-holder");
+  showRingsCheckbox.parent("canvas-holder");
 
   showNodalCheckbox = createCheckbox("show approximate nodal/antinodal bands", true);
   showNodalCheckbox.position(260, height + 108);
-  showNodalCheckbox.parent("sketch-holder");
+  showNodalCheckbox.parent("canvas-holder");
 }
 
 function draw() {
