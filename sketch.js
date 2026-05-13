@@ -101,22 +101,33 @@ function drawTitle() {
 }
 
 function drawSpeaker(pos, label) {
-  fill(90);
+  push();
+
+  // Box
+  fill(70);
   stroke(0);
   strokeWeight(2);
-  rect(pos.x - 12, pos.y - 35, 24, 70);
+  rect(pos.x - 25, pos.y - 40, 30, 80, 5);
 
+  // Cone
   fill(130);
-  triangle(
-    pos.x + 12, pos.y - 45,
-    pos.x + 70, pos.y - 75,
-    pos.x + 70, pos.y + 75
-  );
+  ellipse(pos.x + 25, pos.y, 60, 60);
 
+  // Inner cone
+  fill(90);
+  ellipse(pos.x + 25, pos.y, 35, 35);
+
+  // Center cap
+  fill(40);
+  ellipse(pos.x + 25, pos.y, 12, 12);
+
+  // Label
   noStroke();
   fill(0);
-  textSize(24);
-  text(label, pos.x - 5, pos.y + 105);
+  textSize(20);
+  text(label, pos.x - 5, pos.y + 75);
+
+  pop();
 }
 
 function drawTravelingSineWave(pos, col, phaseShift) {
@@ -227,16 +238,20 @@ function drawInfoPanel(d1_m, d2_m, deltaD_m, lambda_m, ratio) {
 }
 
 function drawControls(lambda_m, spacing_m) {
-  let sliderY = height - 55;
+  let x0 = 430;
+  let y0 = height - 70;
 
-  lambdaSlider.position(430, sliderY);
-  spacingSlider.position(430, sliderY + 35);
+  // Position sliders
+  lambdaSlider.position(x0, y0);
+  spacingSlider.position(x0, y0 + 40);
 
+  // Labels RIGHT NEXT to sliders
   noStroke();
   fill(0);
   textSize(16);
-  text(`wavelength λ = ${lambda_m.toFixed(2)} m`, 650, sliderY + 15);
-  text(`speaker separation = ${spacing_m.toFixed(2)} m`, 650, sliderY + 50);
+
+  text(`λ = ${lambda_m.toFixed(2)} m`, x0 + 180, y0 + 15);
+  text(`separation = ${spacing_m.toFixed(2)} m`, x0 + 180, y0 + 55);
 }
 
 function updateSound(ratio) {
