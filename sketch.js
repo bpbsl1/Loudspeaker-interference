@@ -178,10 +178,17 @@ function drawPathLines(lambda) {
   noStroke();
   fill(0);
   textSize(15);
-  text(`d₁ = ${nf(d1, 1, 1)} px`, (speaker1.x + mic.x) / 2, (speaker1.y + mic.y) / 2 - 10);
-  text(`d₂ = ${nf(d2, 1, 1)} px`, (speaker2.x + mic.x) / 2, (speaker2.y + mic.y) / 2 + 20);
-  text(`Δd = |d₁ - d₂| = ...`, width - 260, 100);
-  text(`Δd / λ = ...`, width - 260, 120);
+  text(`d₁ = ${nf(d1, 1, 1)} px`,
+     (speaker1.x + mic.x) / 2,
+     (speaker1.y + mic.y) / 2 - 10);
+
+  text(`d₂ = ${nf(d2, 1, 1)} px`,
+     (speaker2.x + mic.x) / 2,
+     (speaker2.y + mic.y) / 2 + 20);
+
+// 👉 Fill these properly:
+  text(`Δd = |d₁ - d₂| = ${nf(delta, 1, 1)} px`, width - 260, 100);
+  text(`Δd / λ = ${nf(delta / lambda, 1, 2)}`, width - 260, 120);
 }
 
 
